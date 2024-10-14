@@ -1,0 +1,209 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Canal de discussion du TP</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f0f0f0;
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        #ajouterDiscussion {
+            margin: 10px 0;
+            padding: 8px 12px;
+            border-radius: 5px;
+            font-size: 18px;
+            cursor: pointer;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: #fff;
+        }
+
+        th, td {
+            border: 1px solid #ccc;
+            padding: 8px;
+            text-align: left;
+            cursor: pointer;
+        }
+
+        th {
+            background-color: #e0e0e0;
+        }
+
+        .discussion-details {
+            margin: 10px 0;
+            padding: 10px;
+            background-color: #f9f9f9;
+            border: 1px solid #ccc;
+            display: none;
+        }
+
+        .response {
+            margin: 5px 0;
+            padding: 5px;
+            background-color: #e8f4ff;
+            border: 1px solid blue;
+        }
+    </style>
+
+    <!--  Inclusion de la bibliothèque JQuery pour faciliter les manipulations du DOM et les requêtes AJAX  -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+</head>
+<body>
+    <h1>Canal de discussion du TP</h1>
+    <button id="ajouterDiscussion">Ajouter une discussion</button>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Discussion</th>
+                <th>Lancée par</th>
+                <th>Dernière réponse</th>
+                <th>Réponses</th>
+            </tr>
+        </thead>
+        <tbody id="discussionsContainer">
+        </tbody>
+    </table>
+
+    <script>
+          /**
+         * Fonction pour charger les messages depuis l'API.
+         * Utilise `fetch` pour envoyer une requête GET à l'API et récupérer les données des messages.
+         */
+        function chargerMessages() {
+            const apiUrl = 'http://localhost:8000/api/messages'; // URL de l'API
+
+            fetch(apiUrl)
+                .then(response => {
+                    console.log('Statut de la réponse :', response.status); // Log pour afficher le statut de la réponse
+                    if (!response.ok) {
+                        throw new Error(`Erreur réseau lors de la récupération des messages : ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(messages => {
+                    console.log('Messages récupérés avec succès :', messages); // Log pour afficher les messages récupérés
+                    afficherMessages(messages);
+                })
+                .catch(error => {
+                    console.error('Erreur lors du chargement des messages :', error);
+                    $('#discussionsContainer').html('<tr><td colspan="4">Erreur lors du chargement des messages.</td></tr>');
+                });
+        }
+
+       /**
+         * Fonction pour afficher les messages sur la page Web.
+         * Parcourt les messages et crée dynamiquement des lignes de tableau pour chaque discussion.
+         * @param {Array} messages - Tableau de messages récupérés depuis l'API.
+         */
+        function afficherMessages(messages) {
+            const $container = $('#discussionsContainer');
+            $container.empty();
+
+            messages.forEach((message, index) => {
+                const titre = message.titre || message.title || 'Titre non spécifié';
+                const auteur = message.auteur || message.author || 'Auteur inconnu';
+                const description = message.description || message.content || 'Description non spécifiée';
+                const dernierAuteur = (message.commentaires && message.commentaires.length > 0)
+                    ? message.commentaires[message.commentaires.length - 1].auteur
+                    : auteur;
+                const nombreReponses = message.commentaires ? message.commentaires.length : 0;
+
+                // Ajouter la ligne de discussion au tableau
+                const ligne = `
+                    <tr class="discussion-row" data-index="${index}">
+                        <td>${titre}</td>
+                        <td>${auteur}</td>
+                        <td>${dernierAuteur}</td>
+                        <td>${nombreReponses}</td>
+                    </tr>
+                `;
+                $container.append(ligne);
+
+                // Créer la section de détails de la discussion
+                const details = `
+                    <tr class="discussion-details" id="details-${index}" style="display: none;">
+                        <td colspan="4">
+                            <div>
+                                <h3>Discussion - par ${auteur} - ${new Date(message.date).toLocaleString()}</h3>
+                                <p><strong>${titre}</strong></p>
+                                <p>${description}</p>
+                                <h4>Commentaires :</h4>
+                                ${message.commentaires && message.commentaires.length > 0 ? message.commentaires.map((commentaire, i) => `
+                                    <div class="response">
+                                        <p><strong>Réponse ${i + 1} - par ${commentaire.auteur} - ${new Date(commentaire.date).toLocaleString()}</strong></p>
+                                        <p>${commentaire.commentaire}</p>
+                                    </div>
+                                `).join('') : '<p>Aucun commentaire pour cette discussion.</p>'}
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                $container.append(details);
+            });
+
+            // Gérer le clic sur une ligne de discussion pour afficher les détails
+            $('.discussion-row').click(function () {
+                const index = $(this).data('index');
+                $('.discussion-details').hide(); // Cacher tous les autres détails
+                $(`#details-${index}`).toggle(); // Afficher les détails de la discussion cliquée
+            });
+        }
+
+        // Charger les messages au démarrage de la page
+        $(document).ready(function () {
+            chargerMessages(); // Appel à l'API pour charger les messages dynamiquement
+        });
+    </script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

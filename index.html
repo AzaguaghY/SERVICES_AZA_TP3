@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Canal de Discussion TP Final</title>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+    .discussion {
+      border-bottom: 1px solid #ccc;
+      margin-bottom: 10px;
+      padding-bottom: 10px;
+    }
+    #new-discussion-form {
+      margin-bottom: 20px;
+    }
+    input, textarea {
+      display: block;
+      margin: 10px 0;
+      padding: 8px;
+      width: 100%;
+      max-width: 400px;
+    }
+    button {
+      padding: 10px 20px;
+      background-color: #28a745;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #218838;
+    }
+    #discussion-list {
+      margin-top: 20px;
+    }
+    .delete-btn, .reply-btn {
+      color: #007bff;
+      cursor: pointer;
+    }
+    .delete-btn:hover, .reply-btn:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+
+<h1>Canal de Discussion du TP Final</h1>
+
+<h2>Discussions</h2>
+<div id="discussion-list"></div>
+
+<script>
+  $(document).ready(function() {
+    loadDiscussions(); // Load discussions on page load
+
+    // Function to load and display discussions
+    function loadDiscussions() {
+      $.ajax({
+        url: 'http://localhost:8000/api/discussions', // Change this to your API endpoint
+        method: 'GET',
+        success: function(data) {
+          // Sort discussions by date in descending order (most recent first)
+          data.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+          $('#discussion-list').empty(); // Clear the existing list
+          data.forEach(function(discussion) {
+            let formattedDate = new Date(discussion.date).toLocaleString();
+
+            $('#discussion-list').append(`
+              <div class="discussion">
+                <p><strong>Titre:</strong> ${discussion.title}</p>
+                <p><strong>Description:</strong> ${discussion.description}</p>
+                <p><strong>Auteur:</strong> ${discussion.author} - ${formattedDate}</p>
+                <p><strong>Réponses:</strong> ${discussion.reponses}</p>
+                <span class="delete-btn" data-id="${discussion._id}">Supprimer la discussion</span> |
+                <span class="reply-btn">Répondre</span>
+              </div>
+            `);
+          });
+
+          // Attach delete event listener to each delete button
+          $('.delete-btn').click(function() {
+            let id = $(this).data('id');
+            deleteDiscussion(id);
+          });
+        },
+        error: function(err) {
+          console.error('Erreur lors du chargement des discussions', err);
+        }
+      });
+    }
+
+    // Function to delete a discussion with confirmation
+    function deleteDiscussion(id) {
+      if (confirm('Voulez-vous vraiment supprimer la discussion ?')) {
+        $.ajax({
+          url: `http://localhost:8000/api/discussions/${id}`, // Change this to your API endpoint
+          method: 'DELETE',
+          success: function(data) {
+            alert('Discussion supprimée avec succès!');
+            loadDiscussions();  // Reload discussions after deletion
+          },
+          error: function(err) {
+            console.error('Erreur lors de la suppression de la discussion', err);
+          }
+        });
+      } else {
+        // User canceled the deletion, do nothing
+        console.log('Suppression annulée.');
+      }
+    }
+  });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,72 @@
+### Récupérer tous les messages (limité à 250 messages)
+# This request fetches all messages from the database (up to 250)
+GET http://localhost:8000/api/messages
+Content-Type: application/json
+
+###
+
+### Récupérer un message par ID
+# This request fetches a specific message by its ID (change ID as needed)
+GET http://localhost:8000/api/messages/1
+Content-Type: application/json
+
+###
+
+### Récupérer les messages par description (texte "test")
+# This request fetches all messages containing "test" in the description
+GET http://localhost:8000/api/messages/description/test
+Content-Type: application/json
+
+###
+
+### Récupérer les messages par titre (texte "Bonjour")
+# This request fetches all messages containing "Bonjour" in the title
+GET http://localhost:8000/api/messages/titre/Bonjour
+Content-Type: application/json
+
+###
+
+### Récupérer les messages par auteur (texte "Alice")
+# This request fetches all messages by the author with the name "Alice"
+GET http://localhost:8000/api/messages/auteur/Alice
+Content-Type: application/json
+
+###
+
+### Supprimer un message par ID
+# This request deletes a specific message by its ID (change ID as needed)
+DELETE http://localhost:8000/api/messages/2
+Content-Type: application/json
+
+###
+
+### Ajouter un nouveau message
+# This request adds a new message to the database
+POST http://localhost:8000/api/messages
+Content-Type: application/json
+
+{
+  "_id": 7,
+  "titre": "Nouveau message",
+  "description": "Ceci est un nouveau message ajouté via l'API.",
+  "auteur": "David",
+  "date": "2024-09-23T12:45:00Z"
+}
+
+###
+
+### Modifier un message existant par ID
+# This request updates an existing message by its ID (change ID as needed)
+PUT http://localhost:8000/api/messages/4
+Content-Type: application/json
+
+{
+  "titre": "Message mis à jour",
+  "description": "Le message a été modifié avec succès.",
+  "auteur": "David",
+  "date": "2024-09-23T12:45:00Z"
+}
+
+###
+
+
