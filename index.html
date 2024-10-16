@@ -143,37 +143,39 @@
 
     // Fonction pour charger et afficher les discussions
     function loadDiscussions() {
-      fetch('http://localhost:8000/api/messages')  // Votre API pour récupérer les discussions
-        .then(response => response.json())
-        .then(data => {
-          const discussionList = $('#discussion-list');
-          discussionList.empty();  // Vider la liste avant de la remplir
+  fetch('http://localhost:8000/api/messages')  // Votre API pour récupérer les discussions
+    .then(response => response.json())
+    .then(data => {
+      // Trier les discussions par date décroissante (les plus récentes en premier)
+      data.sort((a, b) => new Date(b.date) - new Date(a.date));
 
-          data.forEach(discussion => {
-            // Construire la ligne du tableau pour chaque discussion
-            const derniereReponse = discussion.commentaires.length > 0
-              ? discussion.commentaires[discussion.commentaires.length - 1].auteur
-              : discussion.auteur;
-            const newRow = `
-              <tr class="discussion-row" data-id="${discussion._id}">
-                <td>${discussion.titre}</td>
-                <td>${discussion.auteur}</td>
-                <td>${derniereReponse}</td>
-                <td>${discussion.commentaires.length}</td>
-              </tr>
-            `;
+      const discussionList = $('#discussion-list');
+      discussionList.empty();  // Vider la liste avant de la remplir
 
-            discussionList.append(newRow);
-          });
+      data.forEach(discussion => {
+        const derniereReponse = discussion.commentaires.length > 0
+          ? discussion.commentaires[discussion.commentaires.length - 1].auteur
+          : discussion.auteur;
+        const newRow = `
+          <tr class="discussion-row" data-id="${discussion._id}">
+            <td>${discussion.titre}</td>
+            <td>${discussion.auteur}</td>
+            <td>${derniereReponse}</td>
+            <td>${discussion.commentaires.length}</td>
+          </tr>
+        `;
 
-          // Ajouter des événements "click" pour afficher les détails lors du clic sur une discussion
-          $('.discussion-row').on('click', function() {
-            const discussionId = $(this).data('id');
-            showDiscussionDetails(discussionId);
-          });
-        })
-        .catch(err => console.error('Erreur lors du chargement des discussions', err));
-    }
+        discussionList.append(newRow);
+      });
+
+      $('.discussion-row').on('click', function() {
+        const discussionId = $(this).data('id');
+        showDiscussionDetails(discussionId);
+      });
+    })
+    .catch(err => console.error('Erreur lors du chargement des discussions', err));
+}
+
 
     // Fonction pour afficher les détails d'une discussion
     function showDiscussionDetails(discussionId) {
@@ -214,36 +216,56 @@
 
     // Fonction pour ajouter une nouvelle discussion (déjà présente dans votre version précédente)
     $('#confirm-add-btn').on('click', function() {
-      const titre = $('#new-titre').val();
-      const description = $('#new-description').val();
-      const auteur = "utilisateur@exemple.com";  // Simulez l'auteur ici
+  const titre = $('#new-titre').val();
+  const description = $('#new-description').val();
+  const auteur = "utilisateur@exemple.com";  // Simulez l'auteur ici
 
-      if (!titre || !description) {
-        alert('Veuillez remplir tous les champs.');
-        return;
-      }
+  if (!titre || !description) {
+    alert('Veuillez remplir tous les champs.');
+    return;
+  }
 
-      fetch('http://localhost:8000/api/messages', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          titre: titre,
-          auteur: auteur,
-          description: description,
-          date: new Date(),
-          commentaires: []
-        })
-      })
-      .then(response => response.json())
-      .then(data => {
-        alert('Discussion ajoutée avec succès !');
-        $('#add-discussion-form').hide();  // Cacher le formulaire après l'ajout
-        loadDiscussions();  // Recharger la liste des discussions
-      })
-      .catch(err => console.error('Erreur lors de l\'ajout de la discussion :', err));
+  fetch('http://localhost:8000/api/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      titre: titre,
+      auteur: auteur,
+      description: description,
+      date: new Date(),
+      commentaires: []
+    })
+  })
+  .then(response => response.json())
+  .then(newDiscussion => {
+    alert('Discussion ajoutée avec succès !');
+    $('#add-discussion-form').hide();  // Cacher le formulaire après l'ajout
+
+    // Ajouter directement la nouvelle discussion au début de la liste
+    const derniereReponse = newDiscussion.commentaires.length > 0
+      ? newDiscussion.commentaires[newDiscussion.commentaires.length - 1].auteur
+      : newDiscussion.auteur;
+    const newRow = `
+      <tr class="discussion-row" data-id="${newDiscussion._id}">
+        <td>${newDiscussion.titre}</td>
+        <td>${newDiscussion.auteur}</td>
+        <td>${derniereReponse}</td>
+        <td>${newDiscussion.commentaires.length}</td>
+      </tr>
+    `;
+
+    $('#discussion-list').prepend(newRow);  // Ajouter la nouvelle ligne au début de la liste
+
+    // Ajouter un événement "click" à la nouvelle discussion
+    $('.discussion-row').first().on('click', function() {
+      showDiscussionDetails(newDiscussion._id);
     });
+  })
+  .catch(err => console.error('Erreur lors de l\'ajout de la discussion :', err));
+});
+
 
     // Afficher le formulaire d'ajout de discussion
     $('#add-discussion-btn').on('click', function() {
@@ -254,6 +276,8 @@
 
 </body>
 </html>
+
+
 
 
 
