@@ -19,10 +19,6 @@ const commentSchema = new mongoose.Schema({
 
 // Main message schema
 const messageSchema = new mongoose.Schema({
-  _id: {
-    type: String, // Changed from Number to String for flexibility
-    required: true
-  },
   titre: {
     type: String,
     required: true
@@ -47,3 +43,4 @@ const messageSchema = new mongoose.Schema({
 const Message = mongoose.model('Message', messageSchema);
 
 module.exports = Message;
+

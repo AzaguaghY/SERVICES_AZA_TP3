@@ -3,7 +3,13 @@ const cors = require('cors');
 const mongoose = require('mongoose'); // Importer mongoose pour MongoDB
 const app = express();
 const PORT = 8000;
+const path = require('path');
 require('dotenv').config(); // Charger les variables d'environnement
+
+// Middleware pour analyser les requêtes en JSON
+app.use(express.json());
+// Middleware pour servir les fichiers statiques
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Use CORS middleware to allow cross-origin requests
 app.use(cors());
@@ -22,12 +28,18 @@ mongoose.connect(process.env.MONGO_URI, {
 const messageSchema = new mongoose.Schema({
     titre: String,
     auteur: String,
-    date: String,
+    date: {
+        type: Date,
+        default: Date.now // Date par défaut à la création du message
+    },
     description: String,
     commentaires: [
         {
             auteur: String,
-            date: String,
+            date: {
+                type: Date,
+                default: Date.now
+            },
             commentaire: String
         }
     ]
@@ -42,6 +54,43 @@ app.get('/api/messages', async (req, res) => {
         res.json(messages);
     } catch (err) {
         res.status(500).json({ error: 'Erreur lors de la récupération des messages' });
+    }
+});
+// Route pour récupérer un message par son ID
+app.get('/api/messages/:id', async (req, res) => {
+    try {
+        const message = await Message.findById(req.params.id);
+        if (!message) {
+            return res.status(404).json({ error: 'Message non trouvé' });
+        }
+        res.json(message);
+    } catch (err) {
+        res.status(500).json({ error: 'Erreur lors de la récupération du message' });
+    }
+});
+
+// Route pour ajouter un nouveau message (POST)
+app.post('/api/messages', async (req, res) => {
+    const { titre, auteur, description } = req.body;
+
+    // Vérifier si les champs sont remplis
+    if (!titre || !auteur || !description) {
+        return res.status(400).json({ error: 'Titre, auteur et description sont requis' });
+    }
+
+    const newMessage = new Message({
+        titre: titre,
+        auteur: auteur,
+        description: description,
+        date: new Date()
+    });
+
+    try {
+        // Enregistrer le message dans la base de données
+        const savedMessage = await newMessage.save();
+        res.status(201).json(savedMessage);
+    } catch (err) {
+        res.status(500).json({ error: 'Erreur lors de l\'ajout du message' });
     }
 });
 
@@ -68,11 +117,28 @@ app.get('/api/messages/auteur/:texte', async (req, res) => {
         res.status(500).json({ error: 'Erreur lors de la récupération des messages' });
     }
 });
+// Route pour supprimer un message par son ID
+app.delete('/api/messages/:id', async (req, res) => {
+    try {
+        const message = await Message.findByIdAndDelete(req.params.id);
+        if (!message) {
+            return res.status(404).json({ error: 'Message non trouvé' });
+        }
+        res.json({ message: 'Message supprimé avec succès' });
+    } catch (err) {
+        res.status(500).json({ error: 'Erreur lors de la suppression du message' });
+    }
+});
 
+// Route pour la documentation de l'API
+app.get('/api/aide', (req, res) => {
+    res.sendFile(path.join(__dirname, 'aide.html'));
+});
 // Gestion des erreurs 404 pour les routes non trouvées
 app.use((req, res) => {
     res.status(404).json({ error: 'Route non trouvée' });
 });
+
 
 // Démarrer le serveur sur le port 8000
 app.listen(PORT, () => {

@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Documentation API - Gestion des Messages</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            line-height: 1.6;
+        }
+        h1, h2 {
+            color: #333;
+        }
+        pre {
+            background-color: #f4f4f4;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+        code {
+            color: #d63384;
+        }
+        a {
+            color: #0366d6;
+        }
+    </style>
+</head>
+<body>
+    <h1>Documentation de l'API - Gestion des Messages</h1>
+    <p>Bienvenue dans la documentation de l'API REST pour la gestion des messages.</p>
+
+    <h2>Récupérer tous les messages</h2>
+    <p><strong>Méthode :</strong> <code>GET</code></p>
+    <p><strong>Route :</strong> <code>/api/messages</code></p>
+    <p>Cette route permet de récupérer tous les messages (limité à 250).</p>
+    <pre>
+        <strong>Exemple de requête :</strong>
+        GET http://localhost:8000/api/messages
+
+        <strong>Exemple de réponse :</strong>
+        [
+            {
+                "_id": "60dd71aebd3186a0b698015e",
+                "titre": "Exemple de titre",
+                "auteur": "exemple@exemple.com",
+                "date": "2024-10-12T12:34:56.789Z",
+                "description": "Ceci est un exemple de message.",
+                "commentaires": []
+            }
+        ]
+    </pre>
+
+    <h2>Récupérer un message par ID</h2>
+    <p><strong>Méthode :</strong> <code>GET</code></p>
+    <p><strong>Route :</strong> <code>/api/messages/:id</code></p>
+    <p>Cette route permet de récupérer un message spécifique par son ID.</p>
+    <pre>
+        <strong>Exemple de requête :</strong>
+        GET http://localhost:8000/api/messages/60dd71aebd3186a0b698015e
+
+        <strong>Exemple de réponse :</strong>
+        {
+            "_id": "60dd71aebd3186a0b698015e",
+            "titre": "Exemple de titre",
+            "auteur": "exemple@exemple.com",
+            "date": "2024-10-12T12:34:56.789Z",
+            "description": "Ceci est un exemple de message.",
+            "commentaires": []
+        }
+    </pre>
+
+    <h2>Ajouter un nouveau message</h2>
+    <p><strong>Méthode :</strong> <code>POST</code></p>
+    <p><strong>Route :</strong> <code>/api/messages</code></p>
+    <p>Cette route permet d'ajouter un nouveau message.</p>
+    <pre>
+        <strong>Exemple de requête :</strong>
+        POST http://localhost:8000/api/messages
+        Content-Type: application/json
+
+        {
+            "titre": "Nouveau titre",
+            "auteur": "utilisateur@exemple.com",
+            "description": "Voici la description de mon nouveau message."
+        }
+
+        <strong>Exemple de réponse :</strong>
+        {
+            "_id": "60dd71aebd3186a0b698015e",
+            "titre": "Nouveau titre",
+            "auteur": "utilisateur@exemple.com",
+            "description": "Voici la description de mon nouveau message.",
+            "date": "2024-10-12T12:34:56.789Z",
+            "commentaires": []
+        }
+    </pre>
+
+    <h2>Supprimer un message par ID</h2>
+    <p><strong>Méthode :</strong> <code>DELETE</code></p>
+    <p><strong>Route :</strong> <code>/api/messages/:id</code></p>
+    <p>Cette route permet de supprimer un message spécifique par son ID.</p>
+    <pre>
+        <strong>Exemple de requête :</strong>
+        DELETE http://localhost:8000/api/messages/60dd71aebd3186a0b698015e
+
+        <strong>Exemple de réponse :</strong>
+        {
+            "message": "Message supprimé avec succès"
+        }
+    </pre>
+
+    <h2>Rechercher des messages par titre</h2>
+    <p><strong>Méthode :</strong> <code>GET</code></p>
+    <p><strong>Route :</strong> <code>/api/messages/titre/:texte</code></p>
+    <p>Cette route permet de rechercher des messages contenant un texte particulier dans le titre.</p>
+    <pre>
+        <strong>Exemple de requête :</strong>
+        GET http://localhost:8000/api/messages/titre/Exemple
+
+        <strong>Exemple de réponse :</strong>
+        [
+            {
+                "_id": "60dd71aebd3186a0b698015e",
+                "titre": "Exemple de titre",
+                "auteur": "exemple@exemple.com",
+                "date": "2024-10-12T12:34:56.789Z",
+                "description": "Ceci est un exemple de message.",
+                "commentaires": []
+            }
+        ]
+    </pre>
+
+    <h2>Rechercher des messages par auteur</h2>
+    <p><strong>Méthode :</strong> <code>GET</code></p>
+    <p><strong>Route :</strong> <code>/api/messages/auteur/:texte</code></p>
+    <p>Cette route permet de rechercher des messages créés par un auteur spécifique.</p>
+    <pre>
+        <strong>Exemple de requête :</strong>
+        GET http://localhost:8000/api/messages/auteur/exemple@exemple.com
+
+        <strong>Exemple de réponse :</strong>
+        [
+            {
+                "_id": "60dd71aebd3186a0b698015e",
+                "titre": "Exemple de titre",
+                "auteur": "exemple@exemple.com",
+                "date": "2024-10-12T12:34:56.789Z",
+                "description": "Ceci est un exemple de message.",
+                "commentaires": []
+            }
+        ]
+    </pre>
+</body>
+</html>

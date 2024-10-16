@@ -3,47 +3,93 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Canal de Discussion TP Final</title>
+  <title>Canal de Discussion du TP Final</title>
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <style>
     body {
       font-family: Arial, sans-serif;
-      margin: 20px;
+      padding: 20px;
     }
-    .discussion {
-      border-bottom: 1px solid #ccc;
-      margin-bottom: 10px;
-      padding-bottom: 10px;
+    h1 {
+      text-align: center;
     }
-    #new-discussion-form {
-      margin-bottom: 20px;
-    }
-    input, textarea {
+    #add-discussion-btn {
       display: block;
-      margin: 10px 0;
-      padding: 8px;
-      width: 100%;
-      max-width: 400px;
-    }
-    button {
+      margin: 20px auto;
       padding: 10px 20px;
       background-color: #28a745;
       color: white;
       border: none;
       cursor: pointer;
+      border-radius: 4px;
     }
-    button:hover {
+    #add-discussion-btn:hover {
       background-color: #218838;
     }
-    #discussion-list {
+    table {
+      width: 100%;
+      border-collapse: collapse;
       margin-top: 20px;
     }
-    .delete-btn, .reply-btn {
-      color: #007bff;
+    table, th, td {
+      border: 1px solid #ccc;
+    }
+    th, td {
+      padding: 10px;
+      text-align: left;
+    }
+    th {
+      background-color: #f4f4f4;
+    }
+    #add-discussion-form {
+      display: none;  /* Le formulaire est caché par défaut */
+      margin-top: 20px;
+      text-align: center;
+    }
+    #add-discussion-form h2 {
+      margin-bottom: 20px;
+      font-size: 1.5em;
+    }
+    #add-discussion-form input,
+    #add-discussion-form textarea {
+      width: 100%;
+      max-width: 400px;
+      padding: 10px;
+      margin: 10px 0;
+    }
+    #confirm-add-btn {
+      padding: 10px;
+      background-color: #28a745;
+      color: white;
+      border: none;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+    #confirm-add-btn:hover {
+      background-color: #218838;
+    }
+    #discussion-details {
+      display: none;  /* Cacher les détails par défaut */
+      margin-top: 20px;
+      padding: 10px;
+      border: 1px solid #ccc;
+    }
+    button {
+      padding: 10px;
+      margin-right: 10px;
+      background-color: #007bff;
+      color: white;
+      border: none;
       cursor: pointer;
     }
-    .delete-btn:hover, .reply-btn:hover {
-      text-decoration: underline;
+    button:hover {
+      background-color: #0056b3;
+    }
+    .delete-btn {
+      background-color: #dc3545;
+    }
+    .delete-btn:hover {
+      background-color: #c82333;
     }
   </style>
 </head>
@@ -51,71 +97,170 @@
 
 <h1>Canal de Discussion du TP Final</h1>
 
-<h2>Discussions</h2>
-<div id="discussion-list"></div>
+<!-- Bouton pour afficher le formulaire d'ajout de discussion -->
+<button id="add-discussion-btn">Ajouter une discussion</button>
+
+<!-- Formulaire pour ajouter une nouvelle discussion -->
+<div id="add-discussion-form">
+  <h2>Ajout d'une discussion</h2>
+  <br>
+  <input type="text" id="new-titre" placeholder="Titre de la discussion" required>
+  <br>
+  <textarea id="new-description" placeholder="Description de la discussion" required></textarea>
+  <br>
+  <button id="confirm-add-btn">Confirmer l'ajout de la discussion</button>
+</div>
+
+<!-- Liste des discussions sous forme de tableau -->
+<table id="discussion-table">
+  <thead>
+    <tr>
+      <th>Discussion</th>
+      <th>Lancée par</th>
+      <th>Dernière réponse</th>
+      <th>Réponses</th>
+    </tr>
+  </thead>
+  <tbody id="discussion-list"></tbody>
+</table>
+
+<!-- Détails de la discussion sélectionnée -->
+<div id="discussion-details">
+  <h2>Détails de la discussion</h2>
+  <p><strong>Titre :</strong> <span id="detail-titre"></span></p>
+  <p><strong>Auteur :</strong> <span id="detail-auteur"></span></p>
+  <p><strong>Date :</strong> <span id="detail-date"></span></p>
+  <p><strong>Description :</strong> <span id="detail-description"></span></p>
+
+  <!-- Boutons Répondre et Supprimer -->
+  <button id="reply-btn">Répondre</button>
+  <button id="delete-btn" class="delete-btn">Supprimer la discussion</button>
+</div>
 
 <script>
   $(document).ready(function() {
-    loadDiscussions(); // Load discussions on page load
+    loadDiscussions();
 
-    // Function to load and display discussions
+    // Fonction pour charger et afficher les discussions
     function loadDiscussions() {
-      $.ajax({
-        url: 'http://localhost:8000/api/discussions', // Change this to your API endpoint
-        method: 'GET',
-        success: function(data) {
-          // Sort discussions by date in descending order (most recent first)
-          data.sort((a, b) => new Date(b.date) - new Date(a.date));
+      fetch('http://localhost:8000/api/messages')  // Votre API pour récupérer les discussions
+        .then(response => response.json())
+        .then(data => {
+          const discussionList = $('#discussion-list');
+          discussionList.empty();  // Vider la liste avant de la remplir
 
-          $('#discussion-list').empty(); // Clear the existing list
-          data.forEach(function(discussion) {
-            let formattedDate = new Date(discussion.date).toLocaleString();
+          data.forEach(discussion => {
+            // Construire la ligne du tableau pour chaque discussion
+            const derniereReponse = discussion.commentaires.length > 0
+              ? discussion.commentaires[discussion.commentaires.length - 1].auteur
+              : discussion.auteur;
+            const newRow = `
+              <tr class="discussion-row" data-id="${discussion._id}">
+                <td>${discussion.titre}</td>
+                <td>${discussion.auteur}</td>
+                <td>${derniereReponse}</td>
+                <td>${discussion.commentaires.length}</td>
+              </tr>
+            `;
 
-            $('#discussion-list').append(`
-              <div class="discussion">
-                <p><strong>Titre:</strong> ${discussion.title}</p>
-                <p><strong>Description:</strong> ${discussion.description}</p>
-                <p><strong>Auteur:</strong> ${discussion.author} - ${formattedDate}</p>
-                <p><strong>Réponses:</strong> ${discussion.reponses}</p>
-                <span class="delete-btn" data-id="${discussion._id}">Supprimer la discussion</span> |
-                <span class="reply-btn">Répondre</span>
-              </div>
-            `);
+            discussionList.append(newRow);
           });
 
-          // Attach delete event listener to each delete button
-          $('.delete-btn').click(function() {
-            let id = $(this).data('id');
-            deleteDiscussion(id);
+          // Ajouter des événements "click" pour afficher les détails lors du clic sur une discussion
+          $('.discussion-row').on('click', function() {
+            const discussionId = $(this).data('id');
+            showDiscussionDetails(discussionId);
           });
-        },
-        error: function(err) {
-          console.error('Erreur lors du chargement des discussions', err);
-        }
-      });
+        })
+        .catch(err => console.error('Erreur lors du chargement des discussions', err));
     }
 
-    // Function to delete a discussion with confirmation
+    // Fonction pour afficher les détails d'une discussion
+    function showDiscussionDetails(discussionId) {
+      fetch(`http://localhost:8000/api/messages/${discussionId}`)
+        .then(response => response.json())
+        .then(discussion => {
+          $('#detail-titre').text(discussion.titre);
+          $('#detail-auteur').text(discussion.auteur);
+          $('#detail-date').text(new Date(discussion.date).toLocaleString());
+          $('#detail-description').text(discussion.description);
+
+          // Afficher les détails de la discussion
+          $('#discussion-details').show();
+
+          // Associer le bouton de suppression à cette discussion
+          $('#delete-btn').off('click').on('click', function() {
+            deleteDiscussion(discussionId);
+          });
+        })
+        .catch(err => console.error('Erreur lors de la récupération des détails de la discussion', err));
+    }
+
+    // Fonction pour supprimer une discussion
     function deleteDiscussion(id) {
-      if (confirm('Voulez-vous vraiment supprimer la discussion ?')) {
-        $.ajax({
-          url: `http://localhost:8000/api/discussions/${id}`, // Change this to your API endpoint
-          method: 'DELETE',
-          success: function(data) {
-            alert('Discussion supprimée avec succès!');
-            loadDiscussions();  // Reload discussions after deletion
-          },
-          error: function(err) {
-            console.error('Erreur lors de la suppression de la discussion', err);
-          }
-        });
-      } else {
-        // User canceled the deletion, do nothing
-        console.log('Suppression annulée.');
+      if (confirm('Voulez-vous vraiment supprimer cette discussion ?')) {
+        fetch(`http://localhost:8000/api/messages/${id}`, {
+          method: 'DELETE'
+        })
+        .then(response => {
+          if (!response.ok) throw new Error('Erreur lors de la suppression');
+          alert('Discussion supprimée avec succès');
+          $('#discussion-details').hide();  // Cacher les détails après la suppression
+          loadDiscussions();  // Recharger la liste des discussions
+        })
+        .catch(err => console.error('Erreur lors de la suppression', err));
       }
     }
+
+    // Fonction pour ajouter une nouvelle discussion (déjà présente dans votre version précédente)
+    $('#confirm-add-btn').on('click', function() {
+      const titre = $('#new-titre').val();
+      const description = $('#new-description').val();
+      const auteur = "utilisateur@exemple.com";  // Simulez l'auteur ici
+
+      if (!titre || !description) {
+        alert('Veuillez remplir tous les champs.');
+        return;
+      }
+
+      fetch('http://localhost:8000/api/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          titre: titre,
+          auteur: auteur,
+          description: description,
+          date: new Date(),
+          commentaires: []
+        })
+      })
+      .then(response => response.json())
+      .then(data => {
+        alert('Discussion ajoutée avec succès !');
+        $('#add-discussion-form').hide();  // Cacher le formulaire après l'ajout
+        loadDiscussions();  // Recharger la liste des discussions
+      })
+      .catch(err => console.error('Erreur lors de l\'ajout de la discussion :', err));
+    });
+
+    // Afficher le formulaire d'ajout de discussion
+    $('#add-discussion-btn').on('click', function() {
+      $('#add-discussion-form').toggle();  // Afficher ou cacher le formulaire
+    });
   });
 </script>
 
 </body>
 </html>
+
+
+
+
+
+
+
+
+
+
